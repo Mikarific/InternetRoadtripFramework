@@ -1,0 +1,69 @@
+{
+  "name": "internet-roadtrip-framework",
+  "version": "0.1.0-beta",
+  "description": "Framework for hooking into Internet Roadtrip functions.",
+  "author": "Mikarific",
+  "license": "MIT",
+  "repository": "git@github.com:Mikarific/InternetRoadtripFramework.git",
+  "scripts": {
+    "dev": "rollup -wc",
+    "build:types": "tsc",
+    "build:js": "rollup -c",
+    "build": "run-s ci clean build:*",
+    "format": "prettier --ignore-path .eslintignore --write .",
+    "lint": "prettier --ignore-path .eslintignore --check . && eslint --ext .ts,tsx src",
+    "prepublishOnly": "run-s build",
+    "ci": "run-s lint",
+    "clean": "del-cli dist types"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "unpkg": "dist/index.js",
+  "jsdelivr": "dist/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.js",
+      "types": "./types/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "types"
+  ],
+  "typings": "types/index.d.ts",
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.26.0",
+    "@gera2ld/plaid": "~2.7.0",
+    "@gera2ld/plaid-rollup": "~2.7.0",
+    "@types/howler": "^2.2.12",
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
+    "@typescript-eslint/parser": "^8.18.1",
+    "del-cli": "^6.0.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0",
+    "lint-staged": "^15.2.0",
+    "maplibre-gl": "5.5.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.25.9"
+  },
+  "lint-staged": {
+    "src/**": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
