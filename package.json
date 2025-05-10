@@ -16,12 +16,6 @@
 		"ci": "run-s lint",
 		"clean": "del-cli dist types"
 	},
-	"publishConfig": {
-		"access": "public",
-		"registry": "https://registry.npmjs.org/"
-	},
-	"unpkg": "dist/index.js",
-	"jsdelivr": "dist/index.js",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
 	"exports": {
