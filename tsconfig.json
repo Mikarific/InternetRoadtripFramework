@@ -5,9 +5,8 @@
 		"moduleResolution": "node",
 		"declaration": true,
 		"emitDeclarationOnly": true,
-		"outDir": "types/compiled",
+		"outDir": "types",
 		"allowSyntheticDefaultImports": true,
-		"jsx": "react",
 		"lib": ["DOM", "ES6", "DOM.Iterable", "ScriptHost", "ESNext"]
 	},
 	"include": ["src/**/*.ts"]

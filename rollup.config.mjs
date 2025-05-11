@@ -15,7 +15,7 @@ export default defineConfig([
 		external,
 		output: {
 			format: 'esm',
-			file: `dist/InternetRoadtripFramework.mjs`,
+			file: `dist/index.mjs`,
 			indent: false,
 			banner: `/*! ${pkg.name}@${pkg.version} | ${pkg.license} License */`,
 		},
@@ -30,7 +30,7 @@ export default defineConfig([
 		}),
 		output: {
 			format: 'iife',
-			file: `dist/InternetRoadtripFramework.js`,
+			file: `dist/index.js`,
 			name: 'IRF',
 			indent: false,
 			banner: `/*! ${pkg.name}@${pkg.version} | ${pkg.license} License */\nvar s,i,t;i=null==(s=this.IRF||{})?void 0:s.version,t="${pkg.version}",(void 0===i||i.startsWith(t+"-")||!t.startsWith(i+"-")&&-1===i.localeCompare(t,void 0,{numeric:!0,sensitivity:"case",caseFirst:"upper"}))&&`,

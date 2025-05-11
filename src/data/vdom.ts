@@ -1,51 +1,5 @@
-import { LatLng, NamedLocation, RadioStation, TravelOption, VirtualDOM } from './types';
+import { LatLng, Map, Marker, NamedLocation, RadioStation, TravelOption, VirtualDOM } from './types';
 import * as dom from './dom';
-
-function getVueState(container: HTMLElement, resolve: (value: unknown) => void) {
-	if ((container as VirtualDOM<HTMLElement>).__vue__ !== undefined) {
-		const vueState =
-			(container as VirtualDOM<HTMLDivElement>).__vue__.ws === undefined ?
-				(container as VirtualDOM<HTMLDivElement>).__vue__.$children.find((child) => child.ws !== undefined)
-			:	(container as VirtualDOM<HTMLDivElement>).__vue__;
-		resolve(vueState);
-	} else {
-		Object.defineProperty(container, '__vue__', {
-			set(vueState) {
-				if (vueState !== null) {
-					resolve(vueState);
-					Object.defineProperty(container, '__vue__', {
-						value: vueState,
-						writable: true,
-						configurable: true,
-						enumerable: true,
-					});
-				}
-			},
-			configurable: true,
-			enumerable: true,
-		});
-	}
-}
-
-function statePromise(container: Promise<HTMLElement>): Promise<any> {
-	return new Promise((resolve) => {
-		if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
-			if (document.readyState === 'complete') {
-				container.then(async (container) => getVueState(await container, resolve));
-			} else {
-				window.addEventListener(
-					'load',
-					() => {
-						container.then(async (container) => getVueState(await container, resolve));
-					},
-					{ once: true },
-				);
-			}
-		} else {
-			resolve(null);
-		}
-	});
-}
 
 export const container: Promise<{
 	state: any;
@@ -211,6 +165,107 @@ export const container: Promise<{
 						return state._computedWatchers.panoUrl;
 					},
 				},
+			});
+		});
+	}
+	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
+		if (document.readyState === 'complete') {
+			getStateAndData(resolve, reject);
+		} else {
+			window.addEventListener(
+				'load',
+				() => {
+					getStateAndData(resolve, reject);
+				},
+				{ once: true },
+			);
+		}
+	} else {
+		resolve(null);
+	}
+});
+
+export const map: Promise<{
+	state: any;
+	methods: {
+		createMap: () => Promise<unknown>;
+		flyTo: (lat: number, lng: number) => void;
+		getInitialData: () => Promise<unknown>;
+		handleUserInteraction: () => void;
+		setMarkerPosition: (lat: number, lng: number) => void;
+		setMarkerRotation: (rotation: number) => void;
+		toggleAttribution: () => void;
+		toggleExpand: () => void;
+	};
+	data: {
+		coordinates: [number, number][];
+		isExpanded: boolean;
+		lastUserInteraction: number;
+		map: Map;
+		mapSound: Howl;
+		marker: Marker;
+		showAttribution: boolean;
+	};
+	watchers: {};
+}> = new Promise((resolve, reject) => {
+	function getStateAndData(resolve, reject) {
+		dom.container.then((container) => {
+			const vMap = (container as VirtualDOM<HTMLDivElement>).__vue__.$refs.map;
+			if (vMap === undefined) return reject(new Error('Could not find virtual DOM.'));
+			const state = vMap.map === undefined ? vMap.$children.find((child) => child.map !== undefined) : vMap;
+
+			resolve({
+				state,
+				methods: {
+					get createMap() {
+						return state.createMap;
+					},
+					get flyTo() {
+						return state.flyTo;
+					},
+					get getInitialData() {
+						return state.getInitialData;
+					},
+					get handleUserInteraction() {
+						return state.handleUserInteraction;
+					},
+					get setMarkerPosition() {
+						return state.setMarkerPosition;
+					},
+					get setMarkerRotation() {
+						return state.setMarkerRotation;
+					},
+					get toggleAttribution() {
+						return state.toggleAttribution;
+					},
+					get toggleExpand() {
+						return state.toggleExpand;
+					},
+				},
+				data: {
+					get coordinates() {
+						return state.coordinates;
+					},
+					get isExpanded() {
+						return state.isExpanded;
+					},
+					get lastUserInteraction() {
+						return state.lastUserInteraction;
+					},
+					get map() {
+						return state.map;
+					},
+					get mapSound() {
+						return state.mapSound;
+					},
+					get marker() {
+						return state.marker;
+					},
+					get showAttribution() {
+						return state.showAttribution;
+					},
+				},
+				watchers: {},
 			});
 		});
 	}

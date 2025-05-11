@@ -3,8 +3,6 @@ node_modules
 /.idea
 /.nyc_output
 /coverage
-/dist
-/types
 /docs
 bun.lockb
 package-lock.json

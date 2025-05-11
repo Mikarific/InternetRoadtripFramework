@@ -1,3 +1,5 @@
+import type maplibregl from 'maplibre-gl';
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type VirtualDOM<T> = T & { __vue__: any };
 
@@ -19,3 +21,6 @@ export type RadioStation = {
 	name: string;
 	url: string;
 };
+
+export type Map = maplibregl.Map;
+export type Marker = maplibregl.Marker;
