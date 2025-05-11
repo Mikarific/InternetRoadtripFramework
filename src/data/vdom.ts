@@ -69,7 +69,7 @@ export const container: Promise<{
 	function getStateAndData(resolve, reject) {
 		dom.container.then((container) => {
 			const vContainer = (container as VirtualDOM<HTMLDivElement>).__vue__;
-			if (vContainer === undefined) return reject(new Error('Could not find virtual DOM.'));
+			if (vContainer === undefined) return reject('Could not find virtual DOM.');
 			const state =
 				vContainer.ws === undefined ? vContainer.$children.find((child) => child.ws !== undefined) : vContainer;
 
@@ -209,9 +209,9 @@ export const map: Promise<{
 	watchers: {};
 }> = new Promise((resolve, reject) => {
 	function getStateAndData(resolve, reject) {
-		dom.container.then((container) => {
-			const vMap = (container as VirtualDOM<HTMLDivElement>).__vue__.$refs.map;
-			if (vMap === undefined) return reject(new Error('Could not find virtual DOM.'));
+		dom.map.then((map) => {
+			const vMap = (map as VirtualDOM<HTMLDivElement>).__vue__;
+			if (vMap === undefined) return reject('Could not find virtual DOM.');
 			const state = vMap.map === undefined ? vMap.$children.find((child) => child.map !== undefined) : vMap;
 
 			resolve({
