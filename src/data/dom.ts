@@ -19,5 +19,6 @@ function domPromise<T>(elem: () => T): Promise<T> {
 }
 
 export const container: Promise<HTMLDivElement> = domPromise(() => document.querySelector('.container'));
+export const wheel: Promise<HTMLDivElement> = domPromise(() => document.querySelector('.wheel'));
 export const map: Promise<HTMLDivElement> = domPromise(() => document.querySelector('.map-container'));
 export const options: Promise<HTMLDivElement> = domPromise(() => document.querySelector('.options'));

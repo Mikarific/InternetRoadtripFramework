@@ -185,6 +185,61 @@ export const container: Promise<{
 	}
 });
 
+export const wheel: Promise<{
+	state: any;
+	methods: { onHonkClick: () => void };
+	data: { honkSound: Howl };
+	watchers: {
+		angle: {
+			getter: () => string;
+			value: string;
+		};
+	};
+}> = new Promise((resolve, reject) => {
+	function getStateAndData(resolve, reject) {
+		dom.wheel.then((wheel) => {
+			const vWheel = (wheel as VirtualDOM<HTMLDivElement>).__vue__;
+			if (vWheel === undefined) return reject('Could not find virtual DOM.');
+			const state =
+				vWheel.honkSound === undefined ? vWheel.$children.find((child) => child.honkSound !== undefined) : vWheel;
+
+			resolve({
+				state,
+				methods: {
+					get onHonkClick() {
+						return state.onHonkClick;
+					},
+				},
+				data: {
+					get honkSound() {
+						return state.honkSound;
+					},
+				},
+				watchers: {
+					get angle() {
+						return state._computedWatchers.angle;
+					},
+				},
+			});
+		});
+	}
+	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
+		if (document.readyState === 'complete') {
+			getStateAndData(resolve, reject);
+		} else {
+			window.addEventListener(
+				'load',
+				() => {
+					getStateAndData(resolve, reject);
+				},
+				{ once: true },
+			);
+		}
+	} else {
+		resolve(null);
+	}
+});
+
 export const map: Promise<{
 	state: any;
 	methods: {
