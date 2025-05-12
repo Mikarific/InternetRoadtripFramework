@@ -191,8 +191,8 @@ export const wheel: Promise<{
 	data: { honkSound: Howl };
 	watchers: {
 		angle: {
-			getter: () => string;
-			value: string;
+			getter: () => number;
+			value: number;
 		};
 	};
 }> = new Promise((resolve, reject) => {
