@@ -285,3 +285,77 @@ export const map: Promise<{
 		resolve(null);
 	}
 });
+
+export const options: Promise<{
+	state: any;
+	methods: {
+		angleDifference: (angle1: number, angle2: number) => number;
+		getRotation: (option: number) => number;
+		playBlink: () => void;
+		vote: (option: number) => void;
+	};
+	data: {
+		blinkRate: number;
+		blinkSound: Howl;
+		selectedIndex: number;
+		voteSound: Howl;
+	};
+	watchers: {};
+}> = new Promise((resolve, reject) => {
+	function getStateAndData(resolve, reject) {
+		dom.options.then((options) => {
+			const vOptions = (options as VirtualDOM<HTMLDivElement>).__vue__;
+			if (vOptions === undefined) return reject('Could not find virtual DOM.');
+			const state =
+				vOptions.blinkRate === undefined ? vOptions.$children.find((child) => child.blinkRate !== undefined) : vOptions;
+
+			resolve({
+				state,
+				methods: {
+					get angleDifference() {
+						return state.angleDifference;
+					},
+					get getRotation() {
+						return state.getRotation;
+					},
+					get playBlink() {
+						return state.playBlink;
+					},
+					get vote() {
+						return state.vote;
+					},
+				},
+				data: {
+					get blinkRate() {
+						return state.blinkRate;
+					},
+					get blinkSound() {
+						return state.blinkSound;
+					},
+					get selectedIndex() {
+						return state.selectedIndex;
+					},
+					get voteSound() {
+						return state.voteSound;
+					},
+				},
+				watchers: {},
+			});
+		});
+	}
+	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
+		if (document.readyState === 'complete') {
+			getStateAndData(resolve, reject);
+		} else {
+			window.addEventListener(
+				'load',
+				() => {
+					getStateAndData(resolve, reject);
+				},
+				{ once: true },
+			);
+		}
+	} else {
+		resolve(null);
+	}
+});
