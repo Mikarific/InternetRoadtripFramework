@@ -1,6 +1,6 @@
 {
 	"name": "internet-roadtrip-framework",
-	"version": "0.1.7-beta",
+	"version": "0.2.0-beta",
 	"description": "Framework for hooking into Internet Roadtrip functions.",
 	"author": "Mikarific",
 	"license": "MIT",
@@ -58,7 +58,8 @@
 		"typescript-eslint": "^8.18.1"
 	},
 	"dependencies": {
-		"@babel/runtime": "^7.25.9"
+		"@babel/runtime": "^7.25.9",
+		"internet-roadtrip-framework": "file:"
 	},
 	"lint-staged": {
 		"src/**": [

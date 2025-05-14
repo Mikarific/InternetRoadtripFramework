@@ -15,6 +15,8 @@ export type TravelOption = {
 	description: string;
 	heading: number;
 	pano: string;
+	lat?: number;
+	lng?: number;
 };
 export type RadioStation = {
 	distance: number;
@@ -24,3 +26,19 @@ export type RadioStation = {
 
 export type Map = maplibregl.Map;
 export type Marker = maplibregl.Marker;
+
+export type ChatEvent = {
+	type: string;
+	id: number;
+	author: string;
+	color: string;
+	content: string;
+	timestamp: number;
+};
+export type ChatMessage = {
+	id: number;
+	author: string;
+	color: string;
+	content: string;
+	timestamp: number;
+};

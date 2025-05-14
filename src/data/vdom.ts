@@ -1,8 +1,24 @@
-import { LatLng, Map, Marker, NamedLocation, RadioStation, TravelOption, VirtualDOM } from './types';
+import {
+	ChatEvent,
+	ChatMessage,
+	LatLng,
+	Map,
+	Marker,
+	NamedLocation,
+	RadioStation,
+	TravelOption,
+	VirtualDOM,
+} from './types';
 import * as dom from './dom';
 
 export const container: Promise<{
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	state: any;
+	$refs: {
+		pano0: HTMLIFrameElement;
+		pano1: HTMLIFrameElement;
+	};
+	props: Record<string, never>;
 	methods: {
 		changeStop: (
 			stop: number,
@@ -13,6 +29,8 @@ export const container: Promise<{
 			options: TravelOption[],
 		) => void;
 		connectWebSocket: () => void;
+		getPanoUrl: () => string;
+		switchFrameOrder: () => void;
 		updateData: (data: {
 			chosen: number;
 			distance: number;
@@ -33,6 +51,7 @@ export const container: Promise<{
 		vote: (option: number) => void;
 	};
 	data: {
+		currFrame: number;
 		currentChosen: number;
 		currentCoords: LatLng;
 		currentHeading: number;
@@ -59,12 +78,7 @@ export const container: Promise<{
 		voted: boolean;
 		ws: WebSocket;
 	};
-	watchers: {
-		panoUrl: {
-			getter: () => string;
-			value: string;
-		};
-	};
+	watchers: Record<string, never>;
 }> = new Promise((resolve, reject) => {
 	function getStateAndData(resolve, reject) {
 		dom.container.then((container) => {
@@ -75,12 +89,27 @@ export const container: Promise<{
 
 			resolve({
 				state,
+				$refs: {
+					get pano0() {
+						return state.$refs.pano0;
+					},
+					get pano1() {
+						return state.$refs.pano1;
+					},
+				},
+				props: {},
 				methods: {
 					get changeStop() {
 						return state.changeStop;
 					},
 					get connectWebSocket() {
 						return state.connectWebSocket;
+					},
+					get getPanoUrl() {
+						return state.getPanoUrl;
+					},
+					get switchFrameOrder() {
+						return state.switchFrameOrder;
 					},
 					get updateData() {
 						return state.updateData;
@@ -90,6 +119,9 @@ export const container: Promise<{
 					},
 				},
 				data: {
+					get currFrame() {
+						return state.currFrame;
+					},
 					get currentChosen() {
 						return state.currentChosen;
 					},
@@ -160,11 +192,7 @@ export const container: Promise<{
 						return state.ws;
 					},
 				},
-				watchers: {
-					get panoUrl() {
-						return state._computedWatchers.panoUrl;
-					},
-				},
+				watchers: {},
 			});
 		});
 	}
@@ -186,7 +214,14 @@ export const container: Promise<{
 });
 
 export const wheel: Promise<{
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	state: any;
+	$refs: Record<string, never>;
+	props: {
+		currentOptions: TravelOption[];
+		heading: number;
+		voteCounts: string;
+	};
 	methods: { onHonkClick: () => void };
 	data: { honkSound: Howl };
 	watchers: {
@@ -205,6 +240,18 @@ export const wheel: Promise<{
 
 			resolve({
 				state,
+				$refs: {},
+				props: {
+					get currentOptions() {
+						return state._props.currentOptions;
+					},
+					get heading() {
+						return state._props.heading;
+					},
+					get voteCounts() {
+						return state._props.voteCounts;
+					},
+				},
 				methods: {
 					get onHonkClick() {
 						return state.onHonkClick;
@@ -240,8 +287,190 @@ export const wheel: Promise<{
 	}
 });
 
-export const map: Promise<{
+export const radio: Promise<{
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	state: any;
+	$refs: {
+		equalizerCanvas: HTMLCanvasElement;
+		volumeKnob: HTMLDivElement;
+	};
+	props: {
+		station: RadioStation;
+	};
+	methods: {
+		changeVolume: (mouseEvent: MouseEvent) => void;
+		changeVolumeTouch: (touchEvent: TouchEvent) => void;
+		resizeCanvas: () => void;
+		seek: () => void;
+		setupAudioAnalyzer: () => void;
+		startVisualization: () => void;
+		startVolumeChange: (mouseEvent: MouseEvent) => void;
+		stopVolumeChange: () => void;
+		switchStation: (station: RadioStation) => void;
+		togglePower: () => void;
+		updateVolumeFromAngle: (angle: number) => void;
+	};
+	data: {
+		animationFrameId: number;
+		audioAnalyser: AnalyserNode;
+		audioContext: AudioContext;
+		audioSource: MediaElementAudioSourceNode;
+		buttonSound: Howl;
+		currentFrequency: number;
+		dataArray: Uint8Array;
+		hideMobile: boolean;
+		isChangingVolume: boolean;
+		isPoweredOn: boolean;
+		knobSound: Howl;
+		radioStream: HTMLAudioElement;
+		staticSound: Howl;
+		stationInfo: string;
+		stationName: string;
+		tuningRotation: number;
+		volume: number;
+		volumeRotation: number;
+	};
+	watchers: Record<string, never>;
+}> = new Promise((resolve, reject) => {
+	function getStateAndData(resolve, reject) {
+		dom.radio.then((radio) => {
+			const vRadio = (radio as VirtualDOM<HTMLDivElement>).__vue__;
+			if (vRadio === undefined) return reject('Could not find virtual DOM.');
+			const state =
+				vRadio.radioStream === undefined ? vRadio.$children.find((child) => child.radioStream !== undefined) : vRadio;
+
+			resolve({
+				state,
+				$refs: {
+					get equalizerCanvas() {
+						return state.$refs.equalizerCanvas;
+					},
+					get volumeKnob() {
+						return state.$refs.volumeKnob;
+					},
+				},
+				props: {
+					get station() {
+						return state._props.station;
+					},
+				},
+				methods: {
+					get changeVolume() {
+						return state.changeVolume;
+					},
+					get changeVolumeTouch() {
+						return state.changeVolumeTouch;
+					},
+					get resizeCanvas() {
+						return state.resizeCanvas;
+					},
+					get seek() {
+						return state.seek;
+					},
+					get setupAudioAnalyzer() {
+						return state.setupAudioAnalyzer;
+					},
+					get startVisualization() {
+						return state.startVisualization;
+					},
+					get startVolumeChange() {
+						return state.startVolumeChange;
+					},
+					get stopVolumeChange() {
+						return state.stopVolumeChange;
+					},
+					get switchStation() {
+						return state.switchStation;
+					},
+					get togglePower() {
+						return state.togglePower;
+					},
+					get updateVolumeFromAngle() {
+						return state.updateVolumeFromAngle;
+					},
+				},
+				data: {
+					get animationFrameId() {
+						return state.animationFrameId;
+					},
+					get audioAnalyser() {
+						return state.audioAnalyser;
+					},
+					get audioContext() {
+						return state.audioContext;
+					},
+					get audioSource() {
+						return state.audioSource;
+					},
+					get buttonSound() {
+						return state.buttonSound;
+					},
+					get currentFrequency() {
+						return state.currentFrequency;
+					},
+					get dataArray() {
+						return state.dataArray;
+					},
+					get hideMobile() {
+						return state.hideMobile;
+					},
+					get isChangingVolume() {
+						return state.isChangingVolume;
+					},
+					get isPoweredOn() {
+						return state.isPoweredOn;
+					},
+					get knobSound() {
+						return state.knobSound;
+					},
+					get radioStream() {
+						return state.radioStream;
+					},
+					get staticSound() {
+						return state.staticSound;
+					},
+					get stationInfo() {
+						return state.stationInfo;
+					},
+					get stationName() {
+						return state.stationName;
+					},
+					get tuningRotation() {
+						return state.tuningRotation;
+					},
+					get volume() {
+						return state.volume;
+					},
+					get volumeRotation() {
+						return state.volumeRotation;
+					},
+				},
+				watchers: {},
+			});
+		});
+	}
+	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
+		if (document.readyState === 'complete') {
+			getStateAndData(resolve, reject);
+		} else {
+			window.addEventListener(
+				'load',
+				() => {
+					getStateAndData(resolve, reject);
+				},
+				{ once: true },
+			);
+		}
+	} else {
+		resolve(null);
+	}
+});
+
+export const map: Promise<{
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	state: any;
+	$refs: Record<string, never>;
+	props: Record<string, never>;
 	methods: {
 		createMap: () => Promise<unknown>;
 		flyTo: (lat: number, lng: number) => void;
@@ -261,7 +490,7 @@ export const map: Promise<{
 		marker: Marker;
 		showAttribution: boolean;
 	};
-	watchers: {};
+	watchers: Record<string, never>;
 }> = new Promise((resolve, reject) => {
 	function getStateAndData(resolve, reject) {
 		dom.map.then((map) => {
@@ -271,6 +500,8 @@ export const map: Promise<{
 
 			resolve({
 				state,
+				$refs: {},
+				props: {},
 				methods: {
 					get createMap() {
 						return state.createMap;
@@ -341,8 +572,128 @@ export const map: Promise<{
 	}
 });
 
-export const options: Promise<{
+export const chat: Promise<{
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	state: any;
+	$refs: {
+		chatContainer: HTMLDivElement;
+	};
+	props: Record<string, never>;
+	methods: {
+		escapeHTML: (text: string) => string;
+		fetchChatEvents: () => Promise<unknown>;
+		formatMessage: (text: string) => string;
+		getRandomColor: () => string;
+		getTime: (timestamp: number) => string;
+		handleEvents: (events: ChatEvent[]) => void;
+		openDiscord: () => void;
+		scrollToBottom: () => void;
+		toggleChat: () => void;
+		trimMessage: (text: string) => string;
+	};
+	data: {
+		hideChat: boolean;
+		messages: ChatMessage[];
+		nameColors: string[];
+		userColorMap: {
+			[key: string]: string;
+		};
+	};
+	watchers: Record<string, never>;
+}> = new Promise((resolve, reject) => {
+	function getStateAndData(resolve, reject) {
+		dom.chat.then((chat) => {
+			const vChat = (chat as VirtualDOM<HTMLDivElement>).__vue__;
+			if (vChat === undefined) return reject('Could not find virtual DOM.');
+			const state =
+				vChat.messages === undefined ? vChat.$children.find((child) => child.messages !== undefined) : vChat;
+
+			resolve({
+				state,
+				$refs: {
+					get chatContainer() {
+						return state.$refs.chatContainer;
+					},
+				},
+				props: {},
+				methods: {
+					get escapeHTML() {
+						return state.escapeHTML;
+					},
+					get fetchChatEvents() {
+						return state.fetchChatEvents;
+					},
+					get formatMessage() {
+						return state.formatMessage;
+					},
+					get getRandomColor() {
+						return state.getRandomColor;
+					},
+					get getTime() {
+						return state.getTime;
+					},
+					get handleEvents() {
+						return state.handleEvents;
+					},
+					get openDiscord() {
+						return state.openDiscord;
+					},
+					get scrollToBottom() {
+						return state.scrollToBottom;
+					},
+					get toggleChat() {
+						return state.toggleChat;
+					},
+					get trimMessage() {
+						return state.trimMessage;
+					},
+				},
+				data: {
+					get hideChat() {
+						return state.hideChat;
+					},
+					get messages() {
+						return state.messages;
+					},
+					get nameColors() {
+						return state.nameColors;
+					},
+					get userColorMap() {
+						return state.userColorMap;
+					},
+				},
+				watchers: {},
+			});
+		});
+	}
+	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
+		if (document.readyState === 'complete') {
+			getStateAndData(resolve, reject);
+		} else {
+			window.addEventListener(
+				'load',
+				() => {
+					getStateAndData(resolve, reject);
+				},
+				{ once: true },
+			);
+		}
+	} else {
+		resolve(null);
+	}
+});
+
+export const options: Promise<{
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	state: any;
+	$refs: Record<string, never>;
+	props: {
+		chosen: number;
+		heading: number;
+		options: TravelOption[];
+		stopNum: number;
+		votes: boolean;
+	};
 	methods: {
 		angleDifference: (angle1: number, angle2: number) => number;
 		getRotation: (option: number) => number;
@@ -355,7 +706,7 @@ export const options: Promise<{
 		selectedIndex: number;
 		voteSound: Howl;
 	};
-	watchers: {};
+	watchers: Record<string, never>;
 }> = new Promise((resolve, reject) => {
 	function getStateAndData(resolve, reject) {
 		dom.options.then((options) => {
@@ -366,6 +717,24 @@ export const options: Promise<{
 
 			resolve({
 				state,
+				$refs: {},
+				props: {
+					get chosen() {
+						return state._props.chosen;
+					},
+					get heading() {
+						return state._props.heading;
+					},
+					get options() {
+						return state._props.options;
+					},
+					get stopNum() {
+						return state._props.stopNum;
+					},
+					get votes() {
+						return state._props.votes;
+					},
+				},
 				methods: {
 					get angleDifference() {
 						return state.angleDifference;
@@ -392,6 +761,211 @@ export const options: Promise<{
 					},
 					get voteSound() {
 						return state.voteSound;
+					},
+				},
+				watchers: {},
+			});
+		});
+	}
+	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
+		if (document.readyState === 'complete') {
+			getStateAndData(resolve, reject);
+		} else {
+			window.addEventListener(
+				'load',
+				() => {
+					getStateAndData(resolve, reject);
+				},
+				{ once: true },
+			);
+		}
+	} else {
+		resolve(null);
+	}
+});
+
+export const odometer: Promise<{
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	state: any;
+	$refs: Record<string, never>;
+	props: {
+		miles: number;
+	};
+	methods: {
+		getDisplayValue: (miles: number) => number;
+		toggleUnit: () => void;
+		updateDisplay: (displayNum: number) => void;
+	};
+	data: {
+		conversionFactor: number;
+		currentValue: number;
+		digits: string[];
+		isKilometers: boolean;
+	};
+	watchers: {
+		currentUnit: {
+			getter: () => number;
+			value: number;
+		};
+	};
+}> = new Promise((resolve, reject) => {
+	function getStateAndData(resolve, reject) {
+		dom.odometer.then((odometer) => {
+			const vOdometer = (odometer as VirtualDOM<HTMLDivElement>).__vue__;
+			if (vOdometer === undefined) return reject('Could not find virtual DOM.');
+			const state =
+				vOdometer.digits === undefined ? vOdometer.$children.find((child) => child.digits !== undefined) : vOdometer;
+
+			resolve({
+				state,
+				$refs: {},
+				props: {
+					get miles() {
+						return state._props.miles;
+					},
+				},
+				methods: {
+					get getDisplayValue() {
+						return state.getDisplayValue;
+					},
+					get toggleUnit() {
+						return state.toggleUnit;
+					},
+					get updateDisplay() {
+						return state.updateDisplay;
+					},
+				},
+				data: {
+					get conversionFactor() {
+						return state.conversionFactor;
+					},
+					get currentValue() {
+						return state.currentValue;
+					},
+					get digits() {
+						return state.digits;
+					},
+					get isKilometers() {
+						return state.isKilometers;
+					},
+				},
+				watchers: {
+					get currentUnit() {
+						return state._computedWatchers.currentUnit;
+					},
+				},
+			});
+		});
+	}
+	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
+		if (document.readyState === 'complete') {
+			getStateAndData(resolve, reject);
+		} else {
+			window.addEventListener(
+				'load',
+				() => {
+					getStateAndData(resolve, reject);
+				},
+				{ once: true },
+			);
+		}
+	} else {
+		resolve(null);
+	}
+});
+
+export const results: Promise<{
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	state: any;
+	$refs: Record<string, never>;
+	props: {
+		endTime: number;
+		heading: number;
+		stopNum: number;
+		voteCounts: {
+			[key: number]: number;
+		};
+		voteOptions: TravelOption[];
+	};
+	methods: {
+		angleDifference: (angle1: number, angle2: number) => number;
+		getRotation: (option: number) => number;
+		setTimeRemaining: () => void;
+		startTween: (voteCounts: { [key: number]: number }) => void;
+	};
+	data: {
+		displayedVotes: {
+			[key: number]: number;
+		};
+		otherOptions: number[];
+		prevStopNum: number;
+		timeRemaining: number;
+		timeRemainingInterval: number;
+		tweenInterval: number | null;
+	};
+	watchers: Record<string, never>;
+}> = new Promise((resolve, reject) => {
+	function getStateAndData(resolve, reject) {
+		dom.results.then((results) => {
+			const vResults = (results as VirtualDOM<HTMLDivElement>).__vue__;
+			if (vResults === undefined) return reject('Could not find virtual DOM.');
+			const state =
+				vResults.timeRemaining === undefined ?
+					vResults.$children.find((child) => child.timeRemaining !== undefined)
+				:	vResults;
+
+			resolve({
+				state,
+				$refs: {},
+				props: {
+					get endTime() {
+						return state._props.endTime;
+					},
+					get heading() {
+						return state._props.heading;
+					},
+					get stopNum() {
+						return state._props.stopNum;
+					},
+					get voteCounts() {
+						return state._props.voteCounts;
+					},
+					get voteOptions() {
+						return state._props.voteOptions;
+					},
+				},
+				methods: {
+					get angleDifference() {
+						return state.angleDifference;
+					},
+					get getRotation() {
+						return state.getRotation;
+					},
+					get setTimeRemaining() {
+						return state.setTimeRemaining;
+					},
+					get startTween() {
+						return state.startTween;
+					},
+				},
+				data: {
+					get displayedVotes() {
+						return state.displayedVotes;
+					},
+					get otherOptions() {
+						return state.otherOptions;
+					},
+					get prevStopNum() {
+						return state.prevStopNum;
+					},
+					get timeRemaining() {
+						return state.timeRemaining;
+					},
+					get timeRemainingInterval() {
+						return state.timeRemainingInterval;
+					},
+					get tweenInterval() {
+						return state.tweenInterval;
 					},
 				},
 				watchers: {},
