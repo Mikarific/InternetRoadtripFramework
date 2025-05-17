@@ -19,6 +19,7 @@ function domPromise<T>(elem: () => T): Promise<T> {
 export const container: Promise<HTMLDivElement> = domPromise(() => document.querySelector('.container'));
 export const wheel: Promise<HTMLDivElement> = domPromise(() => document.querySelector('.wheel-container'));
 export const radio: Promise<HTMLDivElement> = domPromise(() => document.querySelector('.car-radio'));
+export const freshener: Promise<HTMLDivElement> = domPromise(() => document.querySelector('.freshener-container'));
 export const title: Promise<HTMLDivElement> = domPromise(() => document.querySelector('.nuxt-link-active'));
 export const map: Promise<HTMLDivElement> = domPromise(() => document.querySelector('.map-container'));
 export const chat: Promise<HTMLDivElement> = domPromise(() => document.querySelector('.chat-container'));

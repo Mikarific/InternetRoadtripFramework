@@ -1,6 +1,6 @@
 {
 	"name": "internet-roadtrip-framework",
-	"version": "0.2.1-beta",
+	"version": "0.3.0-beta",
 	"description": "Framework for hooking into Internet Roadtrip functions.",
 	"author": "Mikarific",
 	"license": "MIT",
@@ -45,6 +45,7 @@
 		"@gera2ld/plaid": "~2.7.0",
 		"@gera2ld/plaid-rollup": "~2.7.0",
 		"@types/howler": "^2.2.12",
+		"@types/matter-js": "^0.19.8",
 		"@typescript-eslint/eslint-plugin": "^8.18.1",
 		"@typescript-eslint/parser": "^8.18.1",
 		"del-cli": "^6.0.0",

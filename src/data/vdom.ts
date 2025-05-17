@@ -300,6 +300,7 @@ export const radio: Promise<{
 	methods: {
 		changeVolume: (mouseEvent: MouseEvent) => void;
 		changeVolumeTouch: (touchEvent: TouchEvent) => void;
+		playCoffeeSound: () => void;
 		resizeCanvas: () => void;
 		seek: () => void;
 		setupAudioAnalyzer: () => void;
@@ -360,6 +361,9 @@ export const radio: Promise<{
 					},
 					get changeVolumeTouch() {
 						return state.changeVolumeTouch;
+					},
+					get playCoffeeSound() {
+						return state.playCoffeeSound;
 					},
 					get resizeCanvas() {
 						return state.resizeCanvas;
@@ -443,6 +447,161 @@ export const radio: Promise<{
 					},
 					get volumeRotation() {
 						return state.volumeRotation;
+					},
+				},
+				watchers: {},
+			});
+		});
+	}
+	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
+		if (document.readyState === 'complete') {
+			getStateAndData(resolve, reject);
+		} else {
+			window.addEventListener(
+				'load',
+				() => {
+					getStateAndData(resolve, reject);
+				},
+				{ once: true },
+			);
+		}
+	} else {
+		resolve(null);
+	}
+});
+
+export const freshener: Promise<{
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	state: any;
+	$refs: {
+		freshener: HTMLDivElement;
+		leftString: HTMLDivElement;
+		rightString: HTMLDivElement;
+	};
+	props: Record<string, never>;
+	methods: {
+		cleanupPhysics: () => void;
+		endDrag: () => void;
+		handleDrag: (mouseEvent: MouseEvent) => void;
+		initPhysics: () => void;
+		startDrag: (mouseEvent: MouseEvent) => void;
+	};
+	data: {
+		anchors: unknown[];
+		animationFrameId: number;
+		clickSound: Howl;
+		engine: Matter.Engine;
+		freshenerBody: Matter.Body;
+		height: number;
+		idleTimeoutId: unknown;
+		isDragging: boolean;
+		leftConstraint: Matter.Constraint;
+		mouse: unknown;
+		mouseConstraint: Matter.Constraint;
+		render: unknown;
+		rightConstraint: Matter.Constraint;
+		runner: Matter.Runner;
+		sleepCounter: number;
+		stringSpacing: number;
+		width: number;
+		xPosition: number;
+	};
+	watchers: Record<string, never>;
+}> = new Promise((resolve, reject) => {
+	function getStateAndData(resolve, reject) {
+		dom.freshener.then((freshener) => {
+			const vFreshener = (freshener as VirtualDOM<HTMLDivElement>).__vue__;
+			if (vFreshener === undefined) return reject('Could not find virtual DOM.');
+			const state =
+				vFreshener.freshenerBody === undefined ?
+					vFreshener.$children.find((child) => child.freshenerBody !== undefined)
+				:	vFreshener;
+
+			resolve({
+				state,
+				$refs: {
+					get freshener() {
+						return state.$refs.freshener;
+					},
+					get leftString() {
+						return state.$refs.leftString;
+					},
+					get rightString() {
+						return state.$refs.rightString;
+					},
+				},
+				props: {},
+				methods: {
+					get cleanupPhysics() {
+						return state.cleanupPhysics;
+					},
+					get endDrag() {
+						return state.endDrag;
+					},
+					get handleDrag() {
+						return state.handleDrag;
+					},
+					get initPhysics() {
+						return state.initPhysics;
+					},
+					get startDrag() {
+						return state.startDrag;
+					},
+				},
+				data: {
+					get anchors() {
+						return state.anchors;
+					},
+					get animationFrameId() {
+						return state.animationFrameId;
+					},
+					get clickSound() {
+						return state.clickSound;
+					},
+					get engine() {
+						return state.engine;
+					},
+					get freshenerBody() {
+						return state.freshenerBody;
+					},
+					get height() {
+						return state.height;
+					},
+					get idleTimeoutId() {
+						return state.idleTimeoutId;
+					},
+					get isDragging() {
+						return state.isDragging;
+					},
+					get leftConstraint() {
+						return state.leftConstraint;
+					},
+					get mouse() {
+						return state.mouse;
+					},
+					get mouseConstraint() {
+						return state.mouseConstraint;
+					},
+					get render() {
+						return state.render;
+					},
+					get rightConstraint() {
+						return state.rightConstraint;
+					},
+					get runner() {
+						return state.runner;
+					},
+					get sleepCounter() {
+						return state.sleepCounter;
+					},
+					get stringSpacing() {
+						return state.stringSpacing;
+					},
+					get width() {
+						return state.width;
+					},
+					get xPosition() {
+						return state.xPosition;
 					},
 				},
 				watchers: {},
@@ -692,7 +851,7 @@ export const options: Promise<{
 		heading: number;
 		options: TravelOption[];
 		stopNum: number;
-		votes: boolean;
+		voted: boolean;
 	};
 	methods: {
 		angleDifference: (angle1: number, angle2: number) => number;
@@ -731,8 +890,8 @@ export const options: Promise<{
 					get stopNum() {
 						return state._props.stopNum;
 					},
-					get votes() {
-						return state._props.votes;
+					get voted() {
+						return state._props.voted;
 					},
 				},
 				methods: {
