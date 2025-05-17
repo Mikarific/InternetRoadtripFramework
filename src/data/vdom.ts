@@ -317,6 +317,7 @@ export const radio: Promise<{
 		audioContext: AudioContext;
 		audioSource: MediaElementAudioSourceNode;
 		buttonSound: Howl;
+		coffeeSound: Howl;
 		currentFrequency: number;
 		dataArray: Uint8Array;
 		hideMobile: boolean;
@@ -408,6 +409,9 @@ export const radio: Promise<{
 					},
 					get buttonSound() {
 						return state.buttonSound;
+					},
+					get coffeeSound() {
+						return state.coffeeSound;
 					},
 					get currentFrequency() {
 						return state.currentFrequency;

@@ -1,6 +1,6 @@
 {
 	"name": "internet-roadtrip-framework",
-	"version": "0.3.0-beta",
+	"version": "0.3.1-beta",
 	"description": "Framework for hooking into Internet Roadtrip functions.",
 	"author": "Mikarific",
 	"license": "MIT",
