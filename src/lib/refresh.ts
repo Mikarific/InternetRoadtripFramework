@@ -8,8 +8,9 @@ if (window.location.hostname === 'neal.fun' && !flags.refreshOnStateChange) {
 			if (argsList[2] !== undefined && finishedLoading) {
 				const newURL = new URL(argsList[2], document.baseURI);
 				const isInternetRoadtrip = newURL.hostname === 'neal.fun' && newURL.pathname === '/internet-roadtrip/';
+				const fromInternetRoadtrip = location.hostname === 'neal.fun' && location.pathname === '/internet-roadtrip/';
 				Object.assign((typeof IRF !== 'undefined' && IRF) || {}, { isInternetRoadtrip });
-				if (isInternetRoadtrip) location.replace(newURL);
+				if (isInternetRoadtrip && !fromInternetRoadtrip) location.replace(newURL);
 			}
 			return Reflect.apply(target, thisArg, argsList);
 		},
@@ -20,8 +21,9 @@ if (window.location.hostname === 'neal.fun' && !flags.refreshOnStateChange) {
 			if (argsList[2] !== undefined && finishedLoading) {
 				const newURL = new URL(argsList[2], document.baseURI);
 				const isInternetRoadtrip = newURL.hostname === 'neal.fun' && newURL.pathname === '/internet-roadtrip/';
+				const fromInternetRoadtrip = location.hostname === 'neal.fun' && location.pathname === '/internet-roadtrip/';
 				Object.assign((typeof IRF !== 'undefined' && IRF) || {}, { isInternetRoadtrip });
-				if (isInternetRoadtrip) location.replace(newURL);
+				if (isInternetRoadtrip && !fromInternetRoadtrip) location.replace(newURL);
 			}
 			return Reflect.apply(target, thisArg, argsList);
 		},
@@ -31,8 +33,9 @@ if (window.location.hostname === 'neal.fun' && !flags.refreshOnStateChange) {
 		if (finishedLoading) {
 			const newURL = new URL(window.location.href);
 			const isInternetRoadtrip = newURL.hostname === 'neal.fun' && newURL.pathname === '/internet-roadtrip/';
+			const fromInternetRoadtrip = location.hostname === 'neal.fun' && location.pathname === '/internet-roadtrip/';
 			Object.assign((typeof IRF !== 'undefined' && IRF) || {}, { isInternetRoadtrip });
-			if (isInternetRoadtrip) location.replace(newURL);
+			if (isInternetRoadtrip && !fromInternetRoadtrip) location.replace(newURL);
 		}
 	});
 
