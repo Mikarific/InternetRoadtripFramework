@@ -69,6 +69,7 @@ export const container: Promise<{
 		loaded: boolean;
 		milesDriven: number;
 		moveSound: Howl;
+		nowPlaying: string;
 		showAlreadyVoted: boolean;
 		showVotedAnim: boolean;
 		totalUsers: string;
@@ -172,6 +173,9 @@ export const container: Promise<{
 					},
 					get moveSound() {
 						return state.moveSound;
+					},
+					get nowPlaying() {
+						return state.nowPlaying;
 					},
 					get showAlreadyVoted() {
 						return state.showAlreadyVoted;
@@ -296,6 +300,7 @@ export const radio: Promise<{
 	};
 	props: {
 		station: RadioStation;
+		nowPlaying: string;
 	};
 	methods: {
 		changeVolume: (mouseEvent: MouseEvent) => void;
@@ -354,6 +359,9 @@ export const radio: Promise<{
 				props: {
 					get station() {
 						return state._props.station;
+					},
+					get nowPlaying() {
+						return state._props.nowPlaying;
 					},
 				},
 				methods: {
@@ -1066,7 +1074,16 @@ export const results: Promise<{
 		timeRemainingInterval: number;
 		tweenInterval: number | null;
 	};
-	watchers: Record<string, never>;
+	watchers: {
+		displayedTotal: {
+			getter: () => number;
+			value: number;
+		};
+		topFourOptions: {
+			getter: () => { id: number; type: 'direction' | 'skip' | 'honk'; votes: number; index?: number }[];
+			value: { id: number; type: 'direction' | 'skip' | 'honk'; votes: number; index?: number }[];
+		};
+	};
 }> = new Promise((resolve, reject) => {
 	function getStateAndData(resolve, reject) {
 		dom.results.then((results) => {
@@ -1131,7 +1148,14 @@ export const results: Promise<{
 						return state.tweenInterval;
 					},
 				},
-				watchers: {},
+				watchers: {
+					get displayedTotal() {
+						return state._computedWatchers.displayedTotal;
+					},
+					get topFourOptions() {
+						return state._computedWatchers.topFourOptions;
+					},
+				},
 			});
 		});
 	}
