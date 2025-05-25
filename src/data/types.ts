@@ -2,6 +2,35 @@ import type maplibregl from 'maplibre-gl';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type VirtualDOM<T> = T & { __vue__: any };
+export type ParsedMeta = {
+	name: string;
+	tabName: string;
+	namespace: string | null;
+	description: string | null;
+	version: string | null;
+	author: string | null;
+	icon: HTMLImageElement | null;
+	license: string | null;
+	homepage: URL | null;
+	supportURL: URL | null;
+	downloadURL: URL | null;
+	updateURL: URL | null;
+	contributionURL: URL | null;
+};
+export type ScriptMeta = {
+	name: string;
+	namespace?: string | null;
+	description?: string | null;
+	version?: string | null;
+	author?: string | null;
+	icon?: string | null;
+	license?: string | null;
+	homepage?: string | null;
+	supportURL?: string | null;
+	downloadURL?: string | null;
+	updateURL?: string | null;
+	contributionURL?: string | null;
+};
 
 export type NamedLocation = {
 	country: string;

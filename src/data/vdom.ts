@@ -1,4 +1,4 @@
-import {
+import type {
 	ChatEvent,
 	ChatMessage,
 	LatLng,
@@ -10,6 +10,32 @@ import {
 	VirtualDOM,
 } from './types';
 import * as dom from './dom';
+
+function getState(elem: HTMLElement, className: string) {
+	return new Promise((resolve) => {
+		if ((elem as VirtualDOM<HTMLElement>).__vue__)
+			return resolve(
+				'wrappedJSObject' in elem ?
+					(elem.wrappedJSObject as VirtualDOM<HTMLElement>).__vue__
+				:	(elem as VirtualDOM<HTMLElement>).__vue__,
+			);
+		const script = document.createElement('script');
+		script.textContent = `(function(){const e=document.querySelector('.${className}');if(e){let s;Object.defineProperty(e,'__vue__',{configurable:!0,enumerable:!0,get(){return s;},set(v){s=v;if(v?.$el.classList.contains('${className}'))window.dispatchEvent(new CustomEvent('irf-nuxt-${className}'));}});}})();`;
+		document.documentElement.appendChild(script);
+		script.remove();
+		window.addEventListener(
+			`irf-nuxt-${className}`,
+			() => {
+				resolve(
+					'wrappedJSObject' in elem ?
+						(elem.wrappedJSObject as VirtualDOM<HTMLElement>).__vue__
+					:	(elem as VirtualDOM<HTMLElement>).__vue__,
+				);
+			},
+			{ once: true },
+		);
+	});
+}
 
 export const container: Promise<{
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,15 +105,16 @@ export const container: Promise<{
 		voted: boolean;
 		ws: WebSocket;
 	};
-	watchers: Record<string, never>;
-}> = new Promise((resolve, reject) => {
-	function getStateAndData(resolve, reject) {
-		dom.container.then((container) => {
-			const vContainer = (container as VirtualDOM<HTMLDivElement>).__vue__;
-			if (vContainer === undefined) return reject('Could not find virtual DOM.');
-			const state =
-				vContainer.ws === undefined ? vContainer.$children.find((child) => child.ws !== undefined) : vContainer;
-
+	watchers: {
+		locationName: {
+			getter: () => string;
+			value: string;
+		};
+	};
+}> = new Promise((resolve) => {
+	dom.container.then((elem) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		getState(elem, 'container').then((state: any) => {
 			resolve({
 				state,
 				$refs: {
@@ -196,25 +223,14 @@ export const container: Promise<{
 						return state.ws;
 					},
 				},
-				watchers: {},
+				watchers: {
+					get locationName() {
+						return state._computedWatchers.locationName;
+					},
+				},
 			});
 		});
-	}
-	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
-		if (document.readyState === 'complete') {
-			getStateAndData(resolve, reject);
-		} else {
-			window.addEventListener(
-				'load',
-				() => {
-					getStateAndData(resolve, reject);
-				},
-				{ once: true },
-			);
-		}
-	} else {
-		resolve(null);
-	}
+	});
 });
 
 export const wheel: Promise<{
@@ -234,14 +250,10 @@ export const wheel: Promise<{
 			value: number;
 		};
 	};
-}> = new Promise((resolve, reject) => {
-	function getStateAndData(resolve, reject) {
-		dom.wheel.then((wheel) => {
-			const vWheel = (wheel as VirtualDOM<HTMLDivElement>).__vue__;
-			if (vWheel === undefined) return reject('Could not find virtual DOM.');
-			const state =
-				vWheel.honkSound === undefined ? vWheel.$children.find((child) => child.honkSound !== undefined) : vWheel;
-
+}> = new Promise((resolve) => {
+	dom.wheel.then((elem) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		getState(elem, 'wheel-container').then((state: any) => {
 			resolve({
 				state,
 				$refs: {},
@@ -273,22 +285,7 @@ export const wheel: Promise<{
 				},
 			});
 		});
-	}
-	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
-		if (document.readyState === 'complete') {
-			getStateAndData(resolve, reject);
-		} else {
-			window.addEventListener(
-				'load',
-				() => {
-					getStateAndData(resolve, reject);
-				},
-				{ once: true },
-			);
-		}
-	} else {
-		resolve(null);
-	}
+	});
 });
 
 export const radio: Promise<{
@@ -338,14 +335,10 @@ export const radio: Promise<{
 		volumeRotation: number;
 	};
 	watchers: Record<string, never>;
-}> = new Promise((resolve, reject) => {
-	function getStateAndData(resolve, reject) {
-		dom.radio.then((radio) => {
-			const vRadio = (radio as VirtualDOM<HTMLDivElement>).__vue__;
-			if (vRadio === undefined) return reject('Could not find virtual DOM.');
-			const state =
-				vRadio.radioStream === undefined ? vRadio.$children.find((child) => child.radioStream !== undefined) : vRadio;
-
+}> = new Promise((resolve) => {
+	dom.radio.then((elem) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		getState(elem, 'car-radio').then((state: any) => {
 			resolve({
 				state,
 				$refs: {
@@ -358,10 +351,10 @@ export const radio: Promise<{
 				},
 				props: {
 					get station() {
-						return state._props.station;
+						return state.station;
 					},
 					get nowPlaying() {
-						return state._props.nowPlaying;
+						return state.nowPlaying;
 					},
 				},
 				methods: {
@@ -464,22 +457,7 @@ export const radio: Promise<{
 				watchers: {},
 			});
 		});
-	}
-	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
-		if (document.readyState === 'complete') {
-			getStateAndData(resolve, reject);
-		} else {
-			window.addEventListener(
-				'load',
-				() => {
-					getStateAndData(resolve, reject);
-				},
-				{ once: true },
-			);
-		}
-	} else {
-		resolve(null);
-	}
+	});
 });
 
 export const freshener: Promise<{
@@ -519,16 +497,10 @@ export const freshener: Promise<{
 		xPosition: number;
 	};
 	watchers: Record<string, never>;
-}> = new Promise((resolve, reject) => {
-	function getStateAndData(resolve, reject) {
-		dom.freshener.then((freshener) => {
-			const vFreshener = (freshener as VirtualDOM<HTMLDivElement>).__vue__;
-			if (vFreshener === undefined) return reject('Could not find virtual DOM.');
-			const state =
-				vFreshener.freshenerBody === undefined ?
-					vFreshener.$children.find((child) => child.freshenerBody !== undefined)
-				:	vFreshener;
-
+}> = new Promise((resolve) => {
+	dom.freshener.then((elem) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		getState(elem, 'freshener-container').then((state: any) => {
 			resolve({
 				state,
 				$refs: {
@@ -619,22 +591,7 @@ export const freshener: Promise<{
 				watchers: {},
 			});
 		});
-	}
-	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
-		if (document.readyState === 'complete') {
-			getStateAndData(resolve, reject);
-		} else {
-			window.addEventListener(
-				'load',
-				() => {
-					getStateAndData(resolve, reject);
-				},
-				{ once: true },
-			);
-		}
-	} else {
-		resolve(null);
-	}
+	});
 });
 
 export const map: Promise<{
@@ -662,13 +619,10 @@ export const map: Promise<{
 		showAttribution: boolean;
 	};
 	watchers: Record<string, never>;
-}> = new Promise((resolve, reject) => {
-	function getStateAndData(resolve, reject) {
-		dom.map.then((map) => {
-			const vMap = (map as VirtualDOM<HTMLDivElement>).__vue__;
-			if (vMap === undefined) return reject('Could not find virtual DOM.');
-			const state = vMap.map === undefined ? vMap.$children.find((child) => child.map !== undefined) : vMap;
-
+}> = new Promise((resolve) => {
+	dom.map.then((elem) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		getState(elem, 'map-container').then((state: any) => {
 			resolve({
 				state,
 				$refs: {},
@@ -725,22 +679,7 @@ export const map: Promise<{
 				watchers: {},
 			});
 		});
-	}
-	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
-		if (document.readyState === 'complete') {
-			getStateAndData(resolve, reject);
-		} else {
-			window.addEventListener(
-				'load',
-				() => {
-					getStateAndData(resolve, reject);
-				},
-				{ once: true },
-			);
-		}
-	} else {
-		resolve(null);
-	}
+	});
 });
 
 export const chat: Promise<{
@@ -770,15 +709,16 @@ export const chat: Promise<{
 			[key: string]: string;
 		};
 	};
-	watchers: Record<string, never>;
-}> = new Promise((resolve, reject) => {
-	function getStateAndData(resolve, reject) {
-		dom.chat.then((chat) => {
-			const vChat = (chat as VirtualDOM<HTMLDivElement>).__vue__;
-			if (vChat === undefined) return reject('Could not find virtual DOM.');
-			const state =
-				vChat.messages === undefined ? vChat.$children.find((child) => child.messages !== undefined) : vChat;
-
+	watchers: {
+		messagesToShow: {
+			getter: () => ChatMessage[];
+			value: ChatMessage[];
+		};
+	};
+}> = new Promise((resolve) => {
+	dom.chat.then((elem) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		getState(elem, 'chat-container').then((state: any) => {
 			resolve({
 				state,
 				$refs: {
@@ -833,25 +773,14 @@ export const chat: Promise<{
 						return state.userColorMap;
 					},
 				},
-				watchers: {},
+				watchers: {
+					get messagesToShow() {
+						return state._computedWatchers.messagesToShow;
+					},
+				},
 			});
 		});
-	}
-	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
-		if (document.readyState === 'complete') {
-			getStateAndData(resolve, reject);
-		} else {
-			window.addEventListener(
-				'load',
-				() => {
-					getStateAndData(resolve, reject);
-				},
-				{ once: true },
-			);
-		}
-	} else {
-		resolve(null);
-	}
+	});
 });
 
 export const options: Promise<{
@@ -878,32 +807,28 @@ export const options: Promise<{
 		voteSound: Howl;
 	};
 	watchers: Record<string, never>;
-}> = new Promise((resolve, reject) => {
-	function getStateAndData(resolve, reject) {
-		dom.options.then((options) => {
-			const vOptions = (options as VirtualDOM<HTMLDivElement>).__vue__;
-			if (vOptions === undefined) return reject('Could not find virtual DOM.');
-			const state =
-				vOptions.blinkRate === undefined ? vOptions.$children.find((child) => child.blinkRate !== undefined) : vOptions;
-
+}> = new Promise((resolve) => {
+	dom.options.then((elem) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		getState(elem, 'options').then((state: any) => {
 			resolve({
 				state,
 				$refs: {},
 				props: {
 					get chosen() {
-						return state._props.chosen;
+						return state.chosen;
 					},
 					get heading() {
-						return state._props.heading;
+						return state.heading;
 					},
 					get options() {
-						return state._props.options;
+						return state.options;
 					},
 					get stopNum() {
-						return state._props.stopNum;
+						return state.stopNum;
 					},
 					get voted() {
-						return state._props.voted;
+						return state.voted;
 					},
 				},
 				methods: {
@@ -937,22 +862,7 @@ export const options: Promise<{
 				watchers: {},
 			});
 		});
-	}
-	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
-		if (document.readyState === 'complete') {
-			getStateAndData(resolve, reject);
-		} else {
-			window.addEventListener(
-				'load',
-				() => {
-					getStateAndData(resolve, reject);
-				},
-				{ once: true },
-			);
-		}
-	} else {
-		resolve(null);
-	}
+	});
 });
 
 export const odometer: Promise<{
@@ -979,20 +889,16 @@ export const odometer: Promise<{
 			value: number;
 		};
 	};
-}> = new Promise((resolve, reject) => {
-	function getStateAndData(resolve, reject) {
-		dom.odometer.then((odometer) => {
-			const vOdometer = (odometer as VirtualDOM<HTMLDivElement>).__vue__;
-			if (vOdometer === undefined) return reject('Could not find virtual DOM.');
-			const state =
-				vOdometer.digits === undefined ? vOdometer.$children.find((child) => child.digits !== undefined) : vOdometer;
-
+}> = new Promise((resolve) => {
+	dom.odometer.then((elem) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		getState(elem, 'odometer-container').then((state: any) => {
 			resolve({
 				state,
 				$refs: {},
 				props: {
 					get miles() {
-						return state._props.miles;
+						return state.miles;
 					},
 				},
 				methods: {
@@ -1027,22 +933,7 @@ export const odometer: Promise<{
 				},
 			});
 		});
-	}
-	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
-		if (document.readyState === 'complete') {
-			getStateAndData(resolve, reject);
-		} else {
-			window.addEventListener(
-				'load',
-				() => {
-					getStateAndData(resolve, reject);
-				},
-				{ once: true },
-			);
-		}
-	} else {
-		resolve(null);
-	}
+	});
 });
 
 export const results: Promise<{
@@ -1084,34 +975,28 @@ export const results: Promise<{
 			value: { id: number; type: 'direction' | 'skip' | 'honk'; votes: number; index?: number }[];
 		};
 	};
-}> = new Promise((resolve, reject) => {
-	function getStateAndData(resolve, reject) {
-		dom.results.then((results) => {
-			const vResults = (results as VirtualDOM<HTMLDivElement>).__vue__;
-			if (vResults === undefined) return reject('Could not find virtual DOM.');
-			const state =
-				vResults.timeRemaining === undefined ?
-					vResults.$children.find((child) => child.timeRemaining !== undefined)
-				:	vResults;
-
+}> = new Promise((resolve) => {
+	dom.results.then((elem) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		getState(elem, 'results').then((state: any) => {
 			resolve({
 				state,
 				$refs: {},
 				props: {
 					get endTime() {
-						return state._props.endTime;
+						return state.endTime;
 					},
 					get heading() {
-						return state._props.heading;
+						return state.heading;
 					},
 					get stopNum() {
-						return state._props.stopNum;
+						return state.stopNum;
 					},
 					get voteCounts() {
-						return state._props.voteCounts;
+						return state.voteCounts;
 					},
 					get voteOptions() {
-						return state._props.voteOptions;
+						return state.voteOptions;
 					},
 				},
 				methods: {
@@ -1158,20 +1043,5 @@ export const results: Promise<{
 				},
 			});
 		});
-	}
-	if (window.location.hostname === 'neal.fun' && window.location.pathname === '/internet-roadtrip/') {
-		if (document.readyState === 'complete') {
-			getStateAndData(resolve, reject);
-		} else {
-			window.addEventListener(
-				'load',
-				() => {
-					getStateAndData(resolve, reject);
-				},
-				{ once: true },
-			);
-		}
-	} else {
-		resolve(null);
-	}
+	});
 });

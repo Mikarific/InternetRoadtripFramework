@@ -8,6 +8,13 @@ export default defineConfig([
 	{
 		input: 'src/index.ts',
 		plugins: definePlugins({
+			postcss: {
+				inject: false,
+				minimize: true,
+				modules: {
+					generateScopedName: 'irf-[hash:base64:6]',
+				},
+			},
 			replaceValues: {
 				'process.env.VERSION': pkg.version,
 			},
@@ -24,6 +31,13 @@ export default defineConfig([
 		input: 'src/index.ts',
 		plugins: definePlugins({
 			minimize: true,
+			postcss: {
+				inject: false,
+				minimize: true,
+				modules: {
+					generateScopedName: 'irf-[hash:base64:6]',
+				},
+			},
 			replaceValues: {
 				'process.env.VERSION': pkg.version,
 			},
