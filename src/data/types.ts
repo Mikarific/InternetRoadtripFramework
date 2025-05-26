@@ -1,5 +1,30 @@
 import type maplibregl from 'maplibre-gl';
 
+export type IRF = {
+	internal: {
+		flags: {
+			readonly refreshOnStateChange: boolean;
+		};
+		ui: {
+			readonly globalStyles: HTMLStyleElement;
+			readonly moduleStyles: HTMLStyleElement;
+			readonly panelButton: HTMLButtonElement;
+			readonly panelIcon: SVGSVGElement;
+			readonly panelPath: SVGPathElement;
+			panel: {
+				readonly host: HTMLElement;
+				readonly root: ShadowRoot;
+				readonly wrapper: HTMLElement;
+				readonly body: HTMLElement;
+				readonly styles: HTMLStyleElement;
+				readonly tabMeta: { info: ParsedMeta; container: HTMLDivElement; styles: string }[];
+				readonly show: () => void;
+				readonly hide: () => void;
+			};
+		};
+	};
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type VirtualDOM<T> = T & { __vue__: any };
 export type ParsedMeta = {

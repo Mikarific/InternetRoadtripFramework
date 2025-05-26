@@ -160,6 +160,10 @@
 	scrollbar-color: #aaa #000;
 }
 
+.panel:not(.grabbing) > .body > .panel-container {
+	cursor: initial;
+}
+
 .panel-empty {
 	position: absolute;
 	width: 100%;

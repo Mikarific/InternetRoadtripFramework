@@ -5,44 +5,26 @@ import panelStyles, { stylesheet as panelCss } from './panel.module.css';
 import { ui } from '../data/internal';
 import { container } from '../data/dom';
 import type { ParsedMeta, ScriptMeta } from '../data/types';
+import { runInContentContext } from './util';
 
-function addStyle(css: string, override: HTMLStyleElement = null) {
-	const style = document.createElement('style');
+function addStyle(css: string, style: HTMLStyleElement) {
 	style.setAttribute('type', 'text/css');
 	style.textContent = css;
 
 	const head = document.getElementsByTagName('head')[0];
-	if (head) {
-		if (override === null) {
-			head.appendChild(style);
-		} else {
-			if (head.contains(override)) {
-				override.replaceWith(style);
-			} else {
-				head.appendChild(style);
-			}
-		}
-	}
+	if (head && !head.contains(style)) head.appendChild(style);
 
 	return style;
 }
 
 function createPanel() {
-	if (ui.panel.host !== null) ui.panel.host.remove();
-	const id = 'irf-' + Math.random().toString(36).slice(2, 8);
-	ui.panel.host = document.createElement(id);
-	ui.panel.host.id = id;
-	const root = ui.panel.host.attachShadow({ mode: 'open' });
-	const wrapper = document.createElement(id);
-	wrapper.className = panelStyles.panel;
-	ui.panel.body = document.createElement(id);
-	ui.panel.body.className = panelStyles.body;
-	wrapper.append(ui.panel.body);
-	ui.panel.styles = document.createElement('style');
+	ui.panel.wrapper.classList.add(panelStyles.panel);
+	ui.panel.body.classList.add(panelStyles.body);
+	ui.panel.wrapper.append(ui.panel.body);
 	ui.panel.styles.setAttribute('type', 'text/css');
 	ui.panel.styles.textContent = [panelCss, ...ui.panel.tabMeta.map((tabs) => tabs.styles)].join('\n\n');
-	root.append(ui.panel.styles);
-	root.append(wrapper);
+	ui.panel.root.append(ui.panel.styles);
+	ui.panel.root.append(ui.panel.wrapper);
 
 	let dragging: { x: number; y: number } = null;
 
@@ -52,44 +34,51 @@ function createPanel() {
 		const { clientX, clientY } = e;
 		const position = { top: 'auto', left: 'auto', right: 'auto', bottom: 'auto' };
 		const { clientWidth, clientHeight } = document.documentElement;
-		const width = wrapper.offsetWidth;
-		const height = wrapper.offsetHeight;
+		const width = ui.panel.wrapper.offsetWidth;
+		const height = ui.panel.wrapper.offsetHeight;
 		const left = Math.min(clientWidth - width, Math.max(0, clientX - x));
 		const top = Math.min(clientHeight - height, Math.max(0, clientY - y));
 		position.left = `${left}px`;
 		position.top = `${top}px`;
-		Object.assign(wrapper.style, position);
+		Object.assign(ui.panel.wrapper.style, position);
 	};
 
 	const onMouseUp = () => {
 		dragging = null;
 		document.removeEventListener('mousemove', onMouseMove);
 		document.removeEventListener('mouseup', onMouseUp);
-		wrapper.classList.remove(panelStyles['grabbing']);
+		ui.panel.wrapper.classList.remove(panelStyles['grabbing']);
 	};
 
-	wrapper.addEventListener('mousedown', (e: MouseEvent) => {
+	ui.panel.wrapper.addEventListener('mousedown', (e: MouseEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
-		const { x, y } = wrapper.getBoundingClientRect();
+		const { x, y } = ui.panel.wrapper.getBoundingClientRect();
 		const { clientX, clientY } = e;
 		dragging = { x: clientX - x, y: clientY - y };
 		document.addEventListener('mousemove', onMouseMove);
 		document.addEventListener('mouseup', onMouseUp);
-		wrapper.classList.add(panelStyles['grabbing']);
+		ui.panel.wrapper.classList.add(panelStyles['grabbing']);
 	});
 
-	ui.panel.show = async () => {
-		(await container).append(ui.panel.host);
-		const { width, height } = ui.panel.body.getBoundingClientRect();
-		const x = window.innerWidth / 2 - width / 2;
-		const y = window.innerHeight / 2 - height / 2;
-		wrapper.style.inset = `${y}px auto auto ${x}px`;
-	};
+	// window.IRF.internal.ui.panel.show = () => {
+	// 	const container = document.querySelector('.container');
+	// 	if (container !== null) {
+	// 		container.append(window.IRF.internal.ui.panel.host);
+	// 		const { width, height } = window.IRF.internal.ui.panel.body.getBoundingClientRect();
+	// 		const x = window.innerWidth / 2 - width / 2;
+	// 		const y = window.innerHeight / 2 - height / 2;
+	// 		window.IRF.internal.ui.panel.wrapper.style.inset = `${y}px auto auto ${x}px`;
+	// 	}
+	// };
+	runInContentContext(
+		'window.IRF.internal.ui.panel.show=()=>{let e=document.querySelector(".container");if(null!==e){e.append(window.IRF.internal.ui.panel.host);let{width:n,height:t}=window.IRF.internal.ui.panel.body.getBoundingClientRect(),i=window.innerWidth/2-n/2,l=window.innerHeight/2-t/2;window.IRF.internal.ui.panel.wrapper.style.inset=`${l}px auto auto ${i}px`}};',
+	);
 
-	ui.panel.hide = () => {
-		ui.panel.host.remove();
-	};
+	// window.IRF.internal.ui.panel.hide = () => {
+	// 	window.IRF.internal.ui.panel.host.remove();
+	// };
+	runInContentContext('window.IRF.internal.ui.panel.hide=()=>{window.IRF.internal.ui.panel.host.remove()};');
 }
 
 function createTabs() {
@@ -198,7 +187,7 @@ function createTabs() {
 	};
 	tabContainer.addEventListener('scroll', updateArrows);
 	window.addEventListener('resize', updateArrows);
-	return { updateArrows };
+	updateArrows();
 }
 
 function createContainer() {
@@ -233,35 +222,33 @@ function createFooter() {
 }
 
 function createPanelButton() {
-	ui.globalStyles = addStyle(globalCss, ui.globalStyles);
-	ui.moduleStyles = addStyle(moduleCss, ui.moduleStyles);
+	addStyle(globalCss, ui.globalStyles);
+	addStyle(moduleCss, ui.moduleStyles);
 
-	if (ui.panelButton !== null) ui.panelButton.remove();
-	ui.panelButton = document.createElement('button');
 	ui.panelButton.classList.add(moduleStyles['panel-button']);
 
-	const panelIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-	panelIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-	panelIcon.setAttribute('viewBox', '0 0 24 24');
-	panelIcon.setAttribute('fill', 'currentColor');
-	panelIcon.classList.add(moduleStyles['panel-icon']);
-	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-	path.setAttribute(
+	ui.panelIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+	ui.panelIcon.setAttribute('viewBox', '0 0 24 24');
+	ui.panelIcon.setAttribute('fill', 'currentColor');
+	ui.panelIcon.classList.add(moduleStyles['panel-icon']);
+
+	ui.panelPath.setAttribute(
 		'd',
 		'M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 01-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 00-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 01-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 00.657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.4.604-.4.959v0c0 .333.277.599.61.58a48.1 48.1 0 005.427-.63 48.05 48.05 0 00.582-4.717.532.532 0 00-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.96.401v0a.656.656 0 00.658-.663 48.422 48.422 0 00-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 01-.61-.58v0Z',
 	);
-	panelIcon.appendChild(path);
-	ui.panelButton.appendChild(panelIcon);
+	ui.panelIcon.appendChild(ui.panelPath);
+	ui.panelButton.appendChild(ui.panelIcon);
 	createPanel();
 	container.then((container) => {
 		ui.panelButton.addEventListener('click', () => {
 			if (!container.contains(ui.panel.host)) {
-				const tabs = createTabs();
-				tabs.updateArrows();
+				ui.panel.show();
+				createTabs();
+			} else {
+				ui.panel.show();
 			}
-			ui.panel.show();
 		});
-		container.appendChild(ui.panelButton);
+		if (!container.contains(ui.panelButton)) container.appendChild(ui.panelButton);
 	});
 }
 
@@ -347,6 +334,9 @@ export function createTabFor(
 
 	const container = document.createElement('div');
 	container.classList.add(panelStyles['panel-container']);
+	container.addEventListener('mousedown', (event) => {
+		if (event.button !== 1) event.stopPropagation();
+	});
 	if (options?.className) container.classList.add(options.className);
 	if (ui.panel.styles !== null) {
 		ui.panel.styles.textContent = [panelCss, ...ui.panel.tabMeta.map((tabs) => tabs.styles)].join('\n\n');

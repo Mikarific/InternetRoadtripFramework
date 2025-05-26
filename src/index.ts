@@ -1,5 +1,5 @@
-import './lib/refresh';
 import './data/internal';
+import './lib/refresh';
 
 export const version: string = 'process.env.VERSION';
 export const isInternetRoadtrip =

@@ -1,39 +1,35 @@
-import type {
-	ChatEvent,
-	ChatMessage,
-	LatLng,
-	Map,
-	Marker,
-	NamedLocation,
-	RadioStation,
-	TravelOption,
-	VirtualDOM,
-} from './types';
+import type { ChatEvent, ChatMessage, LatLng, Map, Marker, NamedLocation, RadioStation, TravelOption } from './types';
 import * as dom from './dom';
+import { runInPageContext, unwrapProp } from '../lib/util';
 
 function getState(elem: HTMLElement, className: string) {
 	return new Promise((resolve) => {
-		if ((elem as VirtualDOM<HTMLElement>).__vue__)
-			return resolve(
-				'wrappedJSObject' in elem ?
-					(elem.wrappedJSObject as VirtualDOM<HTMLElement>).__vue__
-				:	(elem as VirtualDOM<HTMLElement>).__vue__,
-			);
-		const script = document.createElement('script');
-		script.textContent = `(function(){const e=document.querySelector('.${className}');if(e){let s;Object.defineProperty(e,'__vue__',{configurable:!0,enumerable:!0,get(){return s;},set(v){s=v;if(v?.$el.classList.contains('${className}'))window.dispatchEvent(new CustomEvent('irf-nuxt-${className}'));}});}})();`;
-		document.documentElement.appendChild(script);
-		script.remove();
-		window.addEventListener(
-			`irf-nuxt-${className}`,
-			() => {
-				resolve(
-					'wrappedJSObject' in elem ?
-						(elem.wrappedJSObject as VirtualDOM<HTMLElement>).__vue__
-					:	(elem as VirtualDOM<HTMLElement>).__vue__,
-				);
-			},
-			{ once: true },
+		// (function () {
+		// 	const elem = document.querySelector('.${className}');
+		// 	if (elem) {
+		// 		if ('__vue__' in elem && elem.__vue__?.$el === elem)
+		// 			return window.dispatchEvent(new CustomEvent('irf-vdom-${className}'));
+		// 		let state;
+		// 		Object.defineProperty(elem, '__vue__', {
+		// 			configurable: true,
+		// 			enumerable: true,
+		// 			get() {
+		// 				return state;
+		// 			},
+		// 			set(value) {
+		// 				state = value;
+		// 				if (value?.$el === elem) {
+		// 					window.dispatchEvent(new CustomEvent('irf-vdom-${className}'));
+		// 					Object.defineProperty(elem, '__vue__', { configurable: !0, enumerable: !0, writable: !0, value: value });
+		// 				}
+		// 			},
+		// 		});
+		// 	}
+		// })();
+		runInPageContext(
+			`!function(){let e=document.querySelector(".${className}");if(e){if("__vue__"in e&&e.__vue__?.$el===e)return window.dispatchEvent(new CustomEvent("irf-vdom-${className}"));let r;Object.defineProperty(e,"__vue__",{configurable:!0,enumerable:!0,get:()=>r,set(a){r=a,a?.$el===e&&(window.dispatchEvent(new CustomEvent("irf-vdom-${className}")),Object.defineProperty(e,"__vue__",{configurable:!0,enumerable:!0,writable:!0,value:a}))}})}}();`,
 		);
+		window.addEventListener(`irf-vdom-${className}`, () => resolve(unwrapProp(elem, '__vue__')), { once: true });
 	});
 }
 

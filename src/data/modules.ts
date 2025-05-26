@@ -3,32 +3,21 @@ import type * as maplibregl from 'maplibre-gl';
 import type matterjs from 'matter-js';
 
 import * as vdom from './vdom';
+import { getFromPageWindow, runInContentContext, runInPageContext } from '../lib/util';
 
 export const maplibre: Promise<typeof maplibregl> = new Promise((resolve) => {
-	vdom.map.then((vMap) => {
+	vdom.map.then(() => {
 		if (typeof webpackJsonp === 'undefined') {
-			const script = document.createElement('script');
-			script.textContent = `(function(){window.maplibre=Object.values(webpackJsonp.push([[],{['']:(_,e,r)=>{e.cache=r.c}},[['']]]).cache).find(m=>m?.exports?.Map&&document.querySelector('.map-container').__vue__._data.map instanceof m?.exports?.Map).exports;})();`;
-			document.documentElement.appendChild(script);
-			script.remove();
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			resolve((('wrappedJSObject' in window ? window.wrappedJSObject : window) as any).maplibre);
+			runInPageContext(
+				'window.maplibre=Object.values(webpackJsonp.push([[],{""(e,a,p){a.cache=p.c}},[[""]],]).cache).find(e=>e?.exports?.Map&&document.querySelector(".map-container").__vue__._data.map instanceof e?.exports?.Map).exports;',
+			);
+			resolve(getFromPageWindow('maplibre'));
 		} else {
-			const maplibre = (
-				Object.values(
-					webpackJsonp.push([
-						[],
-						{
-							['']: (_, e, r) => {
-								e.cache = r.c;
-							},
-						},
-						[['']],
-					]).cache,
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				).find((m: any) => m?.exports?.Map && vMap.data.map instanceof m?.exports?.Map) as any
-			).exports;
-			resolve(maplibre);
+			resolve(
+				runInContentContext(
+					'Object.values(webpackJsonp.push([[],{""(e,a,p){a.cache=p.c}},[[""]],]).cache).find(e=>e?.exports?.Map&&document.querySelector(".map-container").__vue__._data.map instanceof e?.exports?.Map).exports;',
+				),
+			);
 		}
 	});
 });
@@ -36,28 +25,16 @@ export const maplibre: Promise<typeof maplibregl> = new Promise((resolve) => {
 export const matter: Promise<typeof matterjs> = new Promise((resolve) => {
 	vdom.container.then(() => {
 		if (typeof webpackJsonp === 'undefined') {
-			const script = document.createElement('script');
-			script.textContent = `(function(){window.matter=Object.values(webpackJsonp.push([[],{['']:(_,e,r)=>{e.cache=r.c}},[['']]]).cache).find(m=>m?.exports?.name==='matter-js').exports;})();`;
-			document.documentElement.appendChild(script);
-			script.remove();
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			resolve((('wrappedJSObject' in window ? window.wrappedJSObject : window) as any).matter);
+			runInPageContext(
+				'window.matter=Object.values(webpackJsonp.push([[],{""(e,a,c){a.cache=c.c}},[[""]]]).cache).find(e=>"matter-js"===e?.exports?.name).exports;',
+			);
+			resolve(getFromPageWindow('matter'));
 		} else {
-			const matter = (
-				Object.values(
-					webpackJsonp.push([
-						[],
-						{
-							['']: (_, e, r) => {
-								e.cache = r.c;
-							},
-						},
-						[['']],
-					]).cache,
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				).find((m: any) => m?.exports?.name === 'matter-js') as any
-			).exports;
-			resolve(matter);
+			resolve(
+				runInContentContext(
+					'Object.values(webpackJsonp.push([[],{""(e,a,c){a.cache=c.c}},[[""]]]).cache).find(e=>"matter-js"===e?.exports?.name).exports;',
+				),
+			);
 		}
 	});
 });
@@ -68,16 +45,8 @@ export const howler: Promise<{
 }> = new Promise((resolve) => {
 	vdom.container.then(() => {
 		resolve({
-			Howl:
-				typeof Howl === 'undefined' ?
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(('wrappedJSObject' in window ? window.wrappedJSObject : window) as any).Howl
-				:	Howl,
-			Howler:
-				typeof Howler === 'undefined' ?
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(('wrappedJSObject' in window ? window.wrappedJSObject : window) as any).Howler
-				:	Howler,
+			Howl: typeof Howl !== 'undefined' ? Howl : getFromPageWindow('Howl'),
+			Howler: typeof Howler !== 'undefined' ? Howler : getFromPageWindow('Howler'),
 		});
 	});
 });
