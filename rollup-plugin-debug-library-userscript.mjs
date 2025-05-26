@@ -6,6 +6,7 @@ export default function debugLibraryUserScriptOutputPlugin() {
 // ==UserScript==
 // @name         Internet Roadtrip Framework debugging
 // @match        https://*/*
+// @noframes
 // @run-at       document-start
 // @require      ${libraryUrl}
 // ==/UserScript==
