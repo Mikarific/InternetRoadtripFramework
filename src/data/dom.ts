@@ -1,3 +1,5 @@
+import { getOrSet, content, getOrSetWithOverrideVersion } from '../lib/util';
+
 function domPromise<T extends Element = Element>(className: string, check?: (elem: T) => boolean): Promise<T> {
 	return new Promise((resolve) => {
 		const elem = document.querySelector(`.${className}`);
@@ -43,16 +45,39 @@ function siblingExists(className: string) {
 	};
 }
 
-export const container: Promise<HTMLDivElement> = domPromise<HTMLDivElement>('container');
-export const wheel: Promise<HTMLDivElement> = domPromise<HTMLDivElement>('wheel-container');
-export const radio: Promise<HTMLDivElement> = domPromise<HTMLDivElement>('car-radio');
-export const freshener: Promise<HTMLDivElement> = domPromise<HTMLDivElement>('freshener-container');
-export const title: Promise<HTMLAnchorElement> = domPromise<HTMLAnchorElement>('nuxt-link-active');
-export const map: Promise<HTMLDivElement> = domPromise<HTMLDivElement>('map-container');
-export const chat: Promise<HTMLDivElement> = domPromise<HTMLDivElement>('chat-container');
-export const options: Promise<HTMLDivElement> = domPromise<HTMLDivElement>('options');
-export const odometer: Promise<HTMLDivElement> = domPromise<HTMLDivElement>('odometer-container');
-export const results: Promise<HTMLDivElement> = domPromise<HTMLDivElement>('results');
+const getDomElement = (name: string, className: string, version: string = null, check?: string) => {
+	if (version === null) {
+		return content(
+			getOrSet('window.IRF.dom', name, `(${domPromise.toString()})('${className}'${check ? `,${check}` : ''})`),
+		);
+	} else {
+		return content(
+			getOrSetWithOverrideVersion(
+				'window.IRF.dom',
+				name,
+				`(${domPromise.toString()})('${className}'${check ? `,${check}` : ''})`,
+				version,
+			),
+		);
+	}
+};
 
-export const place: Promise<HTMLDivElement> = domPromise<HTMLDivElement>('place');
-export const drivers: Promise<HTMLDivElement> = domPromise<HTMLDivElement>('drivers', siblingExists('place'));
+content(getOrSet('window.IRF', 'dom', '{}'));
+export const container: Promise<HTMLDivElement> = getDomElement('container', 'container');
+export const wheel: Promise<HTMLDivElement> = getDomElement('wheel', 'wheel-container');
+export const radio: Promise<HTMLDivElement> = getDomElement('radio', 'car-radio');
+export const freshener: Promise<HTMLDivElement> = getDomElement('freshener', 'freshener-container');
+export const title: Promise<HTMLDivElement> = getDomElement('title', 'nuxt-link-active');
+export const map: Promise<HTMLDivElement> = getDomElement('map', 'map-container');
+export const chat: Promise<HTMLDivElement> = getDomElement('chat', 'chat-container');
+export const options: Promise<HTMLDivElement> = getDomElement('options', 'options');
+export const odometer: Promise<HTMLDivElement> = getDomElement('odometer', 'odometer-container');
+export const results: Promise<HTMLDivElement> = getDomElement('results', 'results');
+
+export const place: Promise<HTMLDivElement> = getDomElement('place', 'place');
+export const drivers: Promise<HTMLDivElement> = getDomElement(
+	'drivers',
+	'drivers',
+	null,
+	`(${siblingExists.toString()})('place')`,
+);
