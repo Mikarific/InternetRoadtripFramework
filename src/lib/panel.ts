@@ -250,8 +250,8 @@ function createTabs(styles: { [key: string]: string }) {
 			panel.container.shadowRoot.append(panel.tabMeta[index].container);
 
 			let footerText = panel.tabMeta[index].info.name;
-			if (panel.tabMeta[index].info.version !== null) footerText += ` v${panel.tabMeta[0].info.version}`;
-			if (panel.tabMeta[index].info.author !== null) footerText += ` by ${panel.tabMeta[0].info.author}`;
+			if (panel.tabMeta[index].info.version !== null) footerText += ` v${panel.tabMeta[index].info.version}`;
+			if (panel.tabMeta[index].info.author !== null) footerText += ` by ${panel.tabMeta[index].info.author}`;
 			panel.footer.innerHTML = '';
 			const tabInfo = document.createElement('span');
 			tabInfo.classList.add(styles['footer-left']);
