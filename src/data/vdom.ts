@@ -14,14 +14,40 @@ import { content, getOrSet, getOrSetWithOverrideVersion, page, unwrapProp } from
 function statePromise(elem: Promise<HTMLElement>, className: string, transformer: (state: unknown) => unknown) {
 	return new Promise((resolve) => {
 		elem.then((elem) => {
-			window.addEventListener(`irf-vdom-${className}`, () => resolve(transformer(unwrapProp(elem, '__vue__'))), {
-				once: true,
-			});
+			window.addEventListener(
+				`irf-vdom-${className}`,
+				(e: CustomEvent) => {
+					const findComponentFromUid = (root, uid) => {
+						if (!root) return null;
+						if (root._uid === uid) return root;
+
+						const children = root.$children || [];
+						for (let i = 0; i < children.length; i++) {
+							const component = findComponentFromUid(children[i], uid);
+							if (component) return component;
+						}
+						return null;
+					};
+
+					const vue = unwrapProp(elem, '__vue__');
+					const state = findComponentFromUid(vue.$root, e.detail) ?? vue;
+					resolve(transformer(state));
+				},
+				{ once: true },
+			);
 			// (function () {
 			// 	const elem = document.querySelector('.${className}');
 			// 	if (elem) {
-			// 		if ('__vue__' in elem && elem.__vue__?.$el === elem)
-			// 			return window.dispatchEvent(new CustomEvent('irf-vdom-${className}'));
+			// 		if ('__vue__' in elem && elem.__vue__?.$el === elem) {
+			// 			if (elem.__vue__?.$vnode?.data?.routerView || elem.__vue__?.$parent?.$vnode?.data?.routerView) {
+			// 				return window.dispatchEvent(new CustomEvent('irf-vdom-${className}', { detail: elem.__vue__?._uid }));
+			// 			} else {
+			// 				const component = elem.__vue__.$children.find((child) => child.$vnode?.data?.routerView);
+			// 				if (component) {
+			// 					return window.dispatchEvent(new CustomEvent('irf-vdom-${className}', { detail: component?._uid }));
+			// 				}
+			// 			}
+			// 		}
 			// 		let state;
 			// 		Object.defineProperty(elem, '__vue__', {
 			// 			configurable: true,
@@ -31,8 +57,11 @@ function statePromise(elem: Promise<HTMLElement>, className: string, transformer
 			// 			},
 			// 			set(value) {
 			// 				state = value;
-			// 				if (value?.$el === elem) {
-			// 					window.dispatchEvent(new CustomEvent('irf-vdom-${className}'));
+			// 				if (
+			// 					value?.$el === elem &&
+			// 					(value?.$vnode?.data?.routerView || value?.$parent?.$vnode?.data?.routerView)
+			// 				) {
+			// 					window.dispatchEvent(new CustomEvent('irf-vdom-${className}', { detail: value?._uid }));
 			// 					Object.defineProperty(elem, '__vue__', {
 			// 						configurable: !0,
 			// 						enumerable: !0,
@@ -45,7 +74,7 @@ function statePromise(elem: Promise<HTMLElement>, className: string, transformer
 			// 	}
 			// })();
 			page(
-				`!function(){let e=document.querySelector(".${className}");if(e){if("__vue__"in e&&e.__vue__?.$el===e)return window.dispatchEvent(new CustomEvent("irf-vdom-${className}"));let r;Object.defineProperty(e,"__vue__",{configurable:!0,enumerable:!0,get:()=>r,set(a){r=a,a?.$el===e&&(window.dispatchEvent(new CustomEvent("irf-vdom-${className}")),Object.defineProperty(e,"__vue__",{configurable:!0,enumerable:!0,writable:!0,value:a}))}})}}();`,
+				`!function(){let e=document.querySelector(".${className}");if(e){if("__vue__"in e&&e.__vue__?.$el===e){if(e.__vue__?.$vnode?.data?.routerView||e.__vue__?.$parent?.$vnode?.data?.routerView)return window.dispatchEvent(new CustomEvent("irf-vdom-${className}",{detail:e.__vue__?._uid}));{let t=e.__vue__.$children.find(e=>e.$vnode?.data?.routerView);if(t)return window.dispatchEvent(new CustomEvent("irf-vdom-${className}",{detail:t?._uid}))}}let a;Object.defineProperty(e,"__vue__",{configurable:!0,enumerable:!0,get:()=>a,set(t){a=t,t?.$el===e&&(t?.$vnode?.data?.routerView||t?.$parent?.$vnode?.data?.routerView)&&(window.dispatchEvent(new CustomEvent("irf-vdom-${className}",{detail:t?._uid})),Object.defineProperty(e,"__vue__",{configurable:!0,enumerable:!0,writable:!0,value:t}))}})}}();`,
 			);
 		});
 	});
